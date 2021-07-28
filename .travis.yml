@@ -20,6 +20,19 @@ before_install:
 script:
   - docker run rupeshpanwar/react-test npm test -- --coverage
 
+after_success:
+   - docker build -t rupeshpanwar/multi-client-k8s:latest -t rupeshpanwar/multi-client-k8s:$SHA -f ./client/Dockerfile ./client
+   - docker build -t rupeshpanwar/multi-server-k8s-pgfix:latest -t rupeshpanwar/multi-server-k8s-pgfix:$SHA -f ./server/Dockerfile ./server
+   - docker build -t rupeshpanwar/multi-worker-k8s:latest -t rupeshpanwar/multi-worker-k8s:$SHA -f ./worker/Dockerfile ./worker
+    # Log in to the docker CLI
+   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    # Take those images and push them to docker hub
+   - docker push rupeshpanwar/multi-client-k8s:latest
+   - docker push rupeshpanwar/multi-server-k8s-pgfix:latest
+   - docker push rupeshpanwar/multi-worker-k8s:latest
+   - docker push rupeshpanwar/multi-client-k8s:$SHA
+   - docker push rupeshpanwar/multi-server-k8s-pgfix:$SHA
+   - docker push rupeshpanwar/multi-worker-k8s:$SHA
 deploy:
   provider: script
   script: bash ./deploy.sh
