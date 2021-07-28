@@ -13,12 +13,12 @@ before_install:
   - gcloud auth activate-service-account --key-file premium-student-321118-adbe9ed0b7ce.json
   - gcloud config set project premium-student-321118
   - gcloud config set compute/zone us-central1-c
-  - gcloud container clusters get-credentials multi-cluster
+  - gcloud container clusters get-credentials multi-container
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
-  - docker build -t stephengrider/react-test -f ./client/Dockerfile.dev ./client
+  - docker build -t rupeshpanwar/react-test -f ./client/Dockerfile.dev ./client
 
 script:
-  - docker run stephengrider/react-test npm test -- --coverage
+  - docker run rupeshpanwar/react-test npm test -- --coverage
 
 deploy:
   provider: script
