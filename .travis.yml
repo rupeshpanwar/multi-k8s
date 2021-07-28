@@ -3,58 +3,25 @@ services:
   - docker
 env:
   global:
-    - SHA= $(git rev-parse HEAD)
-    - CLOUDSDK_CORE_DISABLE_PROMPT=1
+    - SHA=$(git rev-parse HEAD)
+    - CLOUDSDK_CORE_DISABLE_PROMPTS=1
 before_install:
-  - openssl aes-256-cbc -K $encrypted_1d15443f7143_key -iv $encrypted_1d15443f7143_iv -in premium-student-321118-adbe9ed0b7ce.json.enc -out premium-student-321118-adbe9ed0b7ce.json -d
+  - openssl aes-256-cbc -K $encrypted_0c35eebf403c_key -iv $encrypted_0c35eebf403c_iv -in service-account.json.enc -out service-account.json -d
   - curl https://sdk.cloud.google.com | bash > /dev/null;
   - source $HOME/google-cloud-sdk/path.bash.inc
   - gcloud components update kubectl
-  - gcloud auth activate-service-account --key-file premium-student-321118-adbe9ed0b7ce.json
-  - gcloud config set project premium-student-321118
-  - gcloud config set compute/zone us-central1-c 
-  - gcloud container clusters get-credentials multi-container 
-   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
-  - docker build -t rupeshpanwar/react-test -f ./client/Dockerfile.dev ./client
+  - gcloud auth activate-service-account --key-file service-account.json
+  - gcloud config set project skilful-berm-214822
+  - gcloud config set compute/zone us-central1-a
+  - gcloud container clusters get-credentials multi-cluster
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker build -t stephengrider/react-test -f ./client/Dockerfile.dev ./client
+
 script:
-  - docker run -e CI=true rupeshpanwar/react-test npm test -- --coverage
+  - docker run stephengrider/react-test npm test -- --coverage
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# after_success:
-#   - docker build -t rupeshpanwar/multi-client-10-14 ./client
-#   - docker build -t rupeshpanwar/multi-nginx-10-14 ./nginx
-#   - docker build -t rupeshpanwar/multi-server-10-14 ./server
-#   - docker build -t rupeshpanwar/multi-worker-10-14 ./worker
-#   # Log in to the docker CLI
-#   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
-#   # Take those images and push them to docker hub
-#   - docker push rupeshpanwar/multi-client-10-14
-#   - docker push rupeshpanwar/multi-nginx-10-14
-#   - docker push rupeshpanwar/multi-server-10-14
-#   - docker push rupeshpanwar/multi-worker-10-14
-
-# deploy:
-#   provider: elasticbeanstalk
-#   region: 'us-east-1'
-#   app: 'multi-docker'
-#   env: 'MultiDocker-env'
-#   bucket_name: 'elasticbeanstalk-us-east-1-923445559289'
-#   bucket_path: 'docker-multi'
-#   on:
-#     branch: master
-#   access_key_id: $AWS_ACCESS_KEY
-#   secret_access_key: $AWS_SECRET_KEY
+deploy:
+  provider: script
+  script: bash ./deploy.sh
+  on:
+    branch: main
